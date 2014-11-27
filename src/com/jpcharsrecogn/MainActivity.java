@@ -1,11 +1,8 @@
 package com.jpcharsrecogn;
 
-import java.io.File;
-
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Environment;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
@@ -13,11 +10,12 @@ import android.view.WindowManager;
 import android.widget.LinearLayout;
 
 import com.jpchar.structures.KanaSyllabary;
+import com.neuralnetwork.Network;
 
 public class MainActivity extends Activity implements OnClickListener {
 
 	private LinearLayout hiraganaLayout, katakanaLayout, kanjiLayout;
-	private File directory;
+	static public Network neunet;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -29,25 +27,11 @@ public class MainActivity extends Activity implements OnClickListener {
 				WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
 		setContentView(R.layout.main);
+		
+		neunet = new Network(this);
 
 		// call the initialization elements
 		initialize();
-
-/*		// access to the external memory for a further image saving
-		directory = new File(Environment.getExternalStorageDirectory()
-				.toString() + "/" + getString(R.string.app_name) + "/");
-		boolean success = true;
-		if (!directory.exists()) {
-			success = directory.mkdir();
-		}
-		if (success) {
-			new File(Environment.getExternalStorageDirectory().toString() + "/"
-					+ getString(R.string.app_name) + "/hiragana/").mkdir();
-			new File(Environment.getExternalStorageDirectory().toString() + "/"
-					+ getString(R.string.app_name) + "/katakana/").mkdir();
-			new File(Environment.getExternalStorageDirectory().toString() + "/"
-					+ getString(R.string.app_name) + "/kanji/").mkdir();
-		}*/
 	}
 
 	private void initialize() {
@@ -67,27 +51,22 @@ public class MainActivity extends Activity implements OnClickListener {
 	@Override
 	public void onClick(View v) {
 		Intent i = null;
+		String extra = null;
 		switch (v.getId()) {
 		case R.id.hiraganaLayout:
-			i = new Intent(getApplicationContext(), DrawCharActivity.class);
-			i.putExtra("type", "hiragana");
-			//i.putExtra("counter", -1);
-			startActivity(i);
+			extra = "hiragana";
 			break;
 
 		case R.id.katakanaLayout:
-			i = new Intent(getApplicationContext(), DrawCharActivity.class);
-			i.putExtra("type", "katakana");
-			//i.putExtra("counter", -1);
-			startActivity(i);
+			extra = "katakana";
 			break;
 
 		case R.id.kanjiLayout:
-			i = new Intent(getApplicationContext(), DrawCharActivity.class);
-			i.putExtra("type", "kanji");
-			//i.putExtra("counter", -1);
-			startActivity(i);
+			extra = "kanji";
 			break;
 		}
+		i = new Intent(getApplicationContext(), DrawCharActivity.class);
+		i.putExtra("type", extra);
+		startActivity(i);
 	}
 }

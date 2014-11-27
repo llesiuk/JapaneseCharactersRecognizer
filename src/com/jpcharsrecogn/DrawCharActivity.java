@@ -1,13 +1,7 @@
 package com.jpcharsrecogn;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.Calendar;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -17,7 +11,6 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.os.Environment;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
@@ -26,14 +19,11 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.jpchar.structures.KanaSyllabary;
-
 public class DrawCharActivity extends Activity implements OnClickListener {
 
 	private TextView type, name;
 	private ImageView clean, edit, next;
 	private String extra;
-	private int number;
 	private float smallBrush, mediumBrush, largeBrush;
 	private DrawCharEventView drawView;
 
@@ -52,6 +42,7 @@ public class DrawCharActivity extends Activity implements OnClickListener {
 
 		type = (TextView) findViewById(R.id.typeText);
 		name = (TextView) findViewById(R.id.nameText);
+		name.setText("Please draw a character");
 		clean = (ImageView) findViewById(R.id.cleanImage);
 		clean.setOnClickListener(this);
 		edit = (ImageView) findViewById(R.id.editImage);
@@ -71,87 +62,16 @@ public class DrawCharActivity extends Activity implements OnClickListener {
 		super.onResume();
 		Bundle extras = getIntent().getExtras();
 		extra = extras.getString("type");
-		number = extras.getInt("counter");
 
 		type.setText(getResources()
-				.getIdentifier(extra, "string", "com.jpchar"));
-
-		if (extra.contains("hiragana")) {
-			name.setText(KanaSyllabary.syllabaryHiragana.get(number).getName());
-		} else if (extra.contains("katakana")) {
-			name.setText(KanaSyllabary.syllabaryKatakana.get(number).getName());
-		} else {
-			name.setText(KanaSyllabary.kanji.get(number).getName());
-		}
+				.getIdentifier(extra, "string", "com.jpcharsrecogn"));
+		drawView.startNew();
 	}
 
 	@Override
 	public void onClick(View v) {
 		switch (v.getId()) {
 		case R.id.nextImage:
-			File filename = null,
-			filename2 = null;
-
-			// Save the drawn image when finished
-			if (extra.contains("hiragana")) {
-				filename = new File(Environment.getExternalStorageDirectory()
-						.toString()
-						+ "/"
-						+ getString(R.string.app_name)
-						+ "/"
-						+ extra
-						+ "/"
-						+ extra.substring(0, 1)
-						+ KanaSyllabary.syllabaryHiragana.get(number).getCode()
-						+ ".png");
-			} else if (extra.contains("katakana")) {
-				filename = new File(Environment.getExternalStorageDirectory()
-						.toString()
-						+ "/"
-						+ getString(R.string.app_name)
-						+ "/"
-						+ extra
-						+ "/"
-						+ extra.substring(0, 1)
-						+ KanaSyllabary.syllabaryKatakana.get(number).getCode()
-						+ ".png");
-			} else {
-				filename = new File(Environment.getExternalStorageDirectory()
-						.toString()
-						+ "/"
-						+ getString(R.string.app_name)
-						+ "/"
-						+ extra
-						+ "/"
-						+ KanaSyllabary.kanji.get(number).getCode() + ".png");
-			}
-
-			try {
-				FileOutputStream out = new FileOutputStream(filename);
-				drawView.getBitmap().compress(Bitmap.CompressFormat.PNG, 90,
-						out);
-				out.close();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-
-			// Save the compressed data about image pixels -> neural network
-			// input
-			filename = new File(Environment.getExternalStorageDirectory()
-					.toString()
-					+ "/"
-					+ getString(R.string.app_name)
-					+ "/"
-					+ extra + "/" + extra + ".dat");
-			filename2 = new File(Environment.getExternalStorageDirectory()
-					.toString()
-					+ "/"
-					+ getString(R.string.app_name)
-					+ "/"
-					+ extra + ".dat");
-
-			try {
-				// FileOutputStream out = new FileOutputStream(filename);
 				Bitmap bmp = drawView.getBitmap(), sbmp = null;
 				int x = -1, y = -1, firstX = Integer.MAX_VALUE, firstY = Integer.MAX_VALUE, lastX = -1, lastY = -1, diffX, diffY;
 
@@ -181,74 +101,26 @@ public class DrawCharActivity extends Activity implements OnClickListener {
 				diffY = lastY - firstY;
 				bmp = Bitmap.createBitmap(bmp, firstX, firstY, diffX, diffY);
 				sbmp = Bitmap.createScaledBitmap(bmp, 30, 30, false);
-
 				// create resized binary matrix
-				String data = "";
+				List<Double> neuralInput = new ArrayList<Double>(900);
 				y = -1;
 				while (++y < sbmp.getHeight()) {
 					x = -1;
 					while (++x < sbmp.getWidth()) {
 						if (sbmp.getPixel(x, y) == Color.BLACK) {
-							data += "1 ";
+							//data += "1 ";
+							neuralInput.add(1.0);
 						} else {
-							data += "0 ";
+							//data += "0 ";
+							neuralInput.add(0.0);
 						}
 					}
 				}
-				// data += "\n";
-				// out.write(data.getBytes());
-				// out.close();
-				FileWriter fileWriter2 = new FileWriter(filename2, true);
-				FileWriter fileWriter = null;
-				if (number == 0) {
-					fileWriter = new FileWriter(filename, false);
-				} else {
-					fileWriter = new FileWriter(filename, true);
-				}
-				fileWriter.write(data + "\n");
-				fileWriter2.write(data);
-				fileWriter2.write("" + (number + 1) + "\n");
-				fileWriter2.close();
-				fileWriter.close();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-
-			if ((extra.contains("ana") && (number == this.getResources()
-					.getInteger(R.integer.kana_quantity) - 1))
-					|| (extra.contains("kanji") && (number == this
-							.getResources()
-							.getInteger(R.integer.kanji_quantity) - 1))) {
-				File directory = new File(Environment
-						.getExternalStorageDirectory().toString()
-						+ "/"
-						+ getString(R.string.app_name) + "/" + extra + "/");
-				try {
-					Calendar now = Calendar.getInstance();
-					zipDirectory(
-							directory,
-							new File(Environment.getExternalStorageDirectory()
-									.toString()
-									+ "/"
-									+ getString(R.string.app_name)
-									+ "/"
-									+ extra
-									+ "_"
-									+ now.get(Calendar.YEAR)
-									+ ""
-									+ now.get(Calendar.MONTH)
-									+ ""
-									+ now.get(Calendar.DAY_OF_MONTH)
-									+ ""
-									+ now.get(Calendar.HOUR_OF_DAY)
-									+ ""
-									+ now.get(Calendar.MINUTE) + ".zip"));
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-				close();
-			}
-			finish();
+				
+			Intent i = new Intent(getApplicationContext(), ViewCharActivity.class);
+			i.putExtra("type", extra);
+			i.putExtra("counter", neuralFeedforward(neuralInput));
+			startActivity(i);
 			break;
 
 		case R.id.editImage:
@@ -334,37 +206,22 @@ public class DrawCharActivity extends Activity implements OnClickListener {
 
 	private void close() {
 		super.onBackPressed();
-		Intent i = new Intent(this, MainActivity.class);
-		i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-		startActivity(i);
 	}
-
-	public static final void zipDirectory(File directory, File zip)
-			throws IOException {
-		ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(zip));
-		zip(directory, directory, zos);
-		zos.close();
-	}
-
-	private static final void zip(File directory, File base, ZipOutputStream zos)
-			throws IOException {
-		File[] files = directory.listFiles();
-		byte[] buffer = new byte[8192];
-		int read = 0;
-		for (int i = 0, n = files.length; i < n; i++) {
-			if (files[i].isDirectory()) {
-				zip(files[i], base, zos);
-			} else {
-				FileInputStream in = new FileInputStream(files[i]);
-				ZipEntry entry = new ZipEntry(files[i].getPath().substring(
-						base.getPath().length() + 1));
-				zos.putNextEntry(entry);
-				while (-1 != (read = in.read(buffer))) {
-					zos.write(buffer, 0, read);
-				}
-				in.close();
-			}
-		}
+	
+	private int neuralFeedforward(List<Double> neuralInput) {
+		int highestNetworkOutputNumber = 0;
+		double highestNetworkOutputValue;
+		MainActivity.neunet.setInputFirst(neuralInput);
+		MainActivity.neunet.computeOutput();		
+		highestNetworkOutputValue = 0.0;
+        for (int j = 0; j < MainActivity.neunet.getNetworkOutput().size(); j++) {
+            if (MainActivity.neunet.getNetworkOutput().get(j) > highestNetworkOutputValue) {
+                highestNetworkOutputValue = MainActivity.neunet.getNetworkOutput().get(j);
+                highestNetworkOutputNumber = j;
+            }
+        }  
+		
+		return highestNetworkOutputNumber;
 	}
 
 }

@@ -57,8 +57,10 @@ public class DrawCharEventView extends View {
 	}
 
 	public void startNew() {
-		drawCanvas.drawColor(0, PorterDuff.Mode.CLEAR);
-		invalidate();
+		if (drawCanvas != null) {
+			drawCanvas.drawColor(0, PorterDuff.Mode.CLEAR);
+			invalidate();
+		}
 	}
 
 	@Override

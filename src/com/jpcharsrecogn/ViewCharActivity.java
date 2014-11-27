@@ -11,7 +11,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ProgressBar;
+//import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.jpchar.structures.KanaSyllabary;
@@ -21,7 +21,7 @@ public class ViewCharActivity extends Activity implements OnClickListener {
 	private LinearLayout viewLayout;
 	private TextView type, name;
 	private ImageView character;
-	private ProgressBar progressBar;
+	//private ProgressBar progressBar;
 	private String extra;
 	private int number;
 
@@ -40,19 +40,12 @@ public class ViewCharActivity extends Activity implements OnClickListener {
 		character = (ImageView) findViewById(R.id.charImage);
 		viewLayout = (LinearLayout) findViewById(R.id.viewLayout);
 		viewLayout.setOnClickListener(this);
-		progressBar = (ProgressBar) findViewById(R.id.progressBar);
+		//progressBar = (ProgressBar) findViewById(R.id.progressBar);
+		//progressBar.setMax(100);
 
 		Bundle extras = getIntent().getExtras();
 		extra = extras.getString("type");
-		number = extras.getInt("counter");
-
-		if (extra.contains("kanji")) {
-			progressBar.setMax(getResources().getInteger(
-					R.integer.kanji_quantity));
-		} else {
-			progressBar.setMax(getResources().getInteger(
-					R.integer.kana_quantity));
-		}
+		number = extras.getInt("counter");		
 	}
 
 	@Override
@@ -60,37 +53,31 @@ public class ViewCharActivity extends Activity implements OnClickListener {
 		super.onResume();
 
 		type.setText(getResources()
-				.getIdentifier(extra, "string", "com.jpchar"));
-
-		number++;
-		progressBar.setProgress(number + 1);
+				.getIdentifier(extra, "string", "com.jpcharsrecogn"));
 
 		if (extra.contains("hiragana")) {
 			name.setText(KanaSyllabary.syllabaryHiragana.get(number).getName());
 			character.setImageResource(getResources().getIdentifier(
 					extra.substring(0, 1)
 							+ KanaSyllabary.syllabaryHiragana.get(number)
-									.getCode(), "drawable", "com.jpchar"));
+									.getCode(), "drawable", "com.jpcharsrecogn"));
 		} else if (extra.contains("katakana")) {
 			name.setText(KanaSyllabary.syllabaryKatakana.get(number).getName());
 			character.setImageResource(getResources().getIdentifier(
 					extra.substring(0, 1)
 							+ KanaSyllabary.syllabaryKatakana.get(number)
-									.getCode(), "drawable", "com.jpchar"));
+									.getCode(), "drawable", "com.jpcharsrecogn"));
 		} else {
 			name.setText(KanaSyllabary.kanji.get(number).getName());
 			character.setImageResource(getResources().getIdentifier(
 					KanaSyllabary.kanji.get(number).getKanjiCode(), "drawable",
-					"com.jpchar"));
+					"com.jpcharsrecogn"));
 		}
 	}
 
 	@Override
 	public void onClick(View v) {
-		Intent i = new Intent(getApplicationContext(), DrawCharActivity.class);
-		i.putExtra("type", extra);
-		i.putExtra("counter", number);
-		startActivity(i);
+		finish();
 	}
 
 	@Override
@@ -98,7 +85,7 @@ public class ViewCharActivity extends Activity implements OnClickListener {
 		AlertDialog.Builder newDialog = new AlertDialog.Builder(this);
 		newDialog.setTitle("Back Pressed");
 		newDialog
-				.setMessage("Back to main screen (you will lose the current progress)?");
+				.setMessage("Do you want to get back to the main screen?");
 		newDialog.setPositiveButton("Yes",
 				new DialogInterface.OnClickListener() {
 					public void onClick(DialogInterface dialog, int which) {
@@ -117,12 +104,9 @@ public class ViewCharActivity extends Activity implements OnClickListener {
 
 	private void close() {
 		super.onBackPressed();
-	}
-	
-	private int neuralFeedforward() {
-		int result = 0;
-		
-		return result;
+		Intent i = new Intent(this, MainActivity.class);
+		i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+		startActivity(i);
 	}
 
 }
