@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -11,7 +12,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-//import android.widget.ProgressBar;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.jpchar.structures.KanaSyllabary;
@@ -19,11 +20,11 @@ import com.jpchar.structures.KanaSyllabary;
 public class ViewCharActivity extends Activity implements OnClickListener {
 
 	private LinearLayout viewLayout;
-	private TextView type, name;
+	private TextView type, name, progressText;
 	private ImageView character;
-	//private ProgressBar progressBar;
+	private ProgressBar progressBar;
 	private String extra;
-	private int number;
+	private int counter, value;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -35,17 +36,19 @@ public class ViewCharActivity extends Activity implements OnClickListener {
 				WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
 		setContentView(R.layout.view);
+
+		Bundle extras = getIntent().getExtras();
+		extra = extras.getString("type");
+		counter = extras.getInt("counter");		
+		value = extras.getInt("value");
+		
 		type = (TextView) findViewById(R.id.typeText);
 		name = (TextView) findViewById(R.id.nameText);
 		character = (ImageView) findViewById(R.id.charImage);
 		viewLayout = (LinearLayout) findViewById(R.id.viewLayout);
 		viewLayout.setOnClickListener(this);
-		//progressBar = (ProgressBar) findViewById(R.id.progressBar);
-		//progressBar.setMax(100);
-
-		Bundle extras = getIntent().getExtras();
-		extra = extras.getString("type");
-		number = extras.getInt("counter");		
+		progressBar = (ProgressBar) findViewById(R.id.progressBar);
+		progressText = (TextView) findViewById(R.id.progressText);
 	}
 
 	@Override
@@ -54,25 +57,36 @@ public class ViewCharActivity extends Activity implements OnClickListener {
 
 		type.setText(getResources()
 				.getIdentifier(extra, "string", "com.jpcharsrecogn"));
+		progressText.setText(getResources().getString(R.string.progress)+ " " + value + "%");
+		if (value < 20) {
+			progressBar.setProgressDrawable(getResources().getDrawable(R.drawable.redprogress));
+		} else if (value < 60) {
+			progressBar.setProgressDrawable(getResources().getDrawable(R.drawable.yellowprogress));
+		} else {
+			progressBar.setProgressDrawable(getResources().getDrawable(R.drawable.greenprogress));
+		}
+		progressBar.setMax(100);
+		progressBar.setProgress(value);
 
 		if (extra.contains("hiragana")) {
-			name.setText(KanaSyllabary.syllabaryHiragana.get(number).getName());
+			name.setText(KanaSyllabary.syllabaryHiragana.get(counter).getName());
 			character.setImageResource(getResources().getIdentifier(
 					extra.substring(0, 1)
-							+ KanaSyllabary.syllabaryHiragana.get(number)
+							+ KanaSyllabary.syllabaryHiragana.get(counter)
 									.getCode(), "drawable", "com.jpcharsrecogn"));
 		} else if (extra.contains("katakana")) {
-			name.setText(KanaSyllabary.syllabaryKatakana.get(number).getName());
+			name.setText(KanaSyllabary.syllabaryKatakana.get(counter).getName());
 			character.setImageResource(getResources().getIdentifier(
 					extra.substring(0, 1)
-							+ KanaSyllabary.syllabaryKatakana.get(number)
+							+ KanaSyllabary.syllabaryKatakana.get(counter)
 									.getCode(), "drawable", "com.jpcharsrecogn"));
 		} else {
-			name.setText(KanaSyllabary.kanji.get(number).getName());
+			name.setText(KanaSyllabary.kanji.get(counter).getName());
 			character.setImageResource(getResources().getIdentifier(
-					KanaSyllabary.kanji.get(number).getKanjiCode(), "drawable",
+					KanaSyllabary.kanji.get(counter).getKanjiCode(), "drawable",
 					"com.jpcharsrecogn"));
 		}
+		
 	}
 
 	@Override

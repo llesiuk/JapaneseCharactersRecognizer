@@ -14,12 +14,12 @@
     <string name="eraser_size">Eraser Size</string>
     <string name="next">Next</string>
     
-    <string name="tap">Tap the screen to start drawing next character.</string>
+    <string name="tap">Tap the screen to start drawing new character.</string>
     
     <string name="sml">Small</string>
 	<string name="med">Medium</string>
 	<string name="lrg">Large</string>
 	
-	<string name="progress">Current progress</string>
+	<string name="progress">Recognition match percentage:</string>
 
 </resources>

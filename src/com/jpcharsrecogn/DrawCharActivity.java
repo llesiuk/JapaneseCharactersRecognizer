@@ -26,6 +26,7 @@ public class DrawCharActivity extends Activity implements OnClickListener {
 	private String extra;
 	private float smallBrush, mediumBrush, largeBrush;
 	private DrawCharEventView drawView;
+	private int counter, value;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -116,10 +117,11 @@ public class DrawCharActivity extends Activity implements OnClickListener {
 						}
 					}
 				}
-				
+			neuralFeedforward(neuralInput);
 			Intent i = new Intent(getApplicationContext(), ViewCharActivity.class);
 			i.putExtra("type", extra);
-			i.putExtra("counter", neuralFeedforward(neuralInput));
+			i.putExtra("counter", counter);
+			i.putExtra("value", value);
 			startActivity(i);
 			break;
 
@@ -208,7 +210,7 @@ public class DrawCharActivity extends Activity implements OnClickListener {
 		super.onBackPressed();
 	}
 	
-	private int neuralFeedforward(List<Double> neuralInput) {
+	private void neuralFeedforward(List<Double> neuralInput) {
 		int highestNetworkOutputNumber = 0;
 		double highestNetworkOutputValue;
 		MainActivity.neunet.setInputFirst(neuralInput);
@@ -221,7 +223,8 @@ public class DrawCharActivity extends Activity implements OnClickListener {
             }
         }  
 		
-		return highestNetworkOutputNumber;
+		counter = highestNetworkOutputNumber;
+		value = (int) (highestNetworkOutputValue * 100);
 	}
 
 }
